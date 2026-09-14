@@ -1,1 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0e16" />
+  <meta name="description" content="InstaLead & Tap — digital business card and lead capture workspace." />
+  <title>InstaLead & Tap</title>
+  <style>
+    :root {
+      --bg: #0b0e16;
+      --card: #141a27;
+      --card-2: #192235;
+      --input: #1b2333;
+      --line: #2a3449;
+      --text: #f6f7fb;
+      --muted: #8d97ad;
+      --lime: #c7f36b;
+      --lime-ink: #10140d;
+      --coral: #f28d72;
+      --coral-ink: #24120e;
+      --radius: 24px;
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% -10%, rgba(199, 243, 107, .08), transparent 28rem),
+        radial-gradient(circle at 100% 30%, rgba(242, 141, 114, .05), transparent 26rem),
+        var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    button:active { transform: scale(.98); }
+    a { color: inherit; }
+    .app { width: 100%; max-width: 520px; min-height: 100vh; margin: 0 auto; position: relative; }
+    .screen {
+      display: none;
+      min-height: 100vh;
+      padding: max(18px, env(safe-area-inset-top)) 18px calc(106px + env(safe-area-inset-bottom));
+    }
+    .screen.active { display: block; animation: screen-in .28s ease both; }
+    @keyframes screen-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .header-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 0 0 20px; }
+    .eyebrow { color: var(--lime); font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { margin-top: 5px; font-size: clamp(30px, 8vw, 38px); line-height: 1.03; letter-spacing: -1.6px; }
+    h2 { font-size: 20px; line-height: 1.1; letter-spacing: -.55px; }
+    .live-pill, .save-pill, .trend-pill, .service-count {
+      display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
+      padding: 8px 11px; white-space: nowrap;
+    }
+    .live-pill { background: rgba(199, 243, 107, .12); color: var(--lime); font-size: 10px; font-weight: 800; letter-spacing: 1px; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); }
+    .card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(20, 26, 39, .92); }
+    .card-pad { padding: 16px; }
+
+    .profile-card { padding-bottom: 18px; }
+    .cover {
+      height: 164px; position: relative; overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(8, 14, 26, .25), rgba(15, 46, 77, .04)),
+        linear-gradient(120deg, #111927, #245071 47%, #bb8b76 110%);
+    }
+    .cover::before, .cover::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+    .cover::before {
+      opacity: .7;
+      background:
+        linear-gradient(90deg, transparent 0 18%, rgba(230, 239, 251, .24) 18.4% 20%, transparent 20.4% 33%, rgba(230, 239, 251, .18) 33.4% 34.2%, transparent 34.6% 49%, rgba(230, 239, 251, .28) 49.4% 51%, transparent 51.4% 62%, rgba(230, 239, 251, .14) 62.4% 64%, transparent 64.4%);
+      clip-path: polygon(0 100%, 0 48%, 12% 60%, 12% 25%, 23% 42%, 23% 10%, 36% 48%, 36% 5%, 53% 37%, 53% 20%, 66% 50%, 66% 2%, 80% 41%, 80% 15%, 100% 55%, 100% 100%);
+    }
+    .cover::after { background: radial-gradient(ellipse at 50% 100%, transparent 22%, rgba(8, 13, 24, .42) 100%); }
+    .profile-identity { position: relative; z-index: 1; display: flex; align-items: flex-end; gap: 12px; margin-top: -48px; padding: 0 16px; }
+    .avatar { width: 88px; height: 88px; flex: 0 0 auto; display: grid; place-items: center; overflow: hidden; border: 4px solid var(--card); border-radius: 28px; background: linear-gradient(150deg, #493628, #0d1b28); }
+    .avatar svg { width: 100%; height: 100%; }
+    .identity-copy { min-width: 0; padding-bottom: 3px; }
+    .name-line { display: flex; align-items: center; gap: 7px; }
+    .profile-name { overflow: hidden; font-size: 20px; font-weight: 800; letter-spacing: -.65px; text-overflow: ellipsis; white-space: nowrap; }
+    .verified { width: 17px; height: 17px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; background: var(--lime); color: var(--lime-ink); font-size: 12px; font-weight: 900; }
+    .profile-title, .location-text { color: var(--muted); font-size: 11px; font-weight: 500; }
+    .profile-title { margin-top: 4px; }
+    .location-text { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
+    .pin { color: var(--coral); font-size: 13px; }
+    .profile-stats { display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr; align-items: center; gap: 10px; margin: 20px 16px 0; padding-top: 16px; border-top: 1px solid var(--line); text-align: center; }
+    .stat-divider { width: 1px; height: 26px; background: var(--line); }
+    .stat-value { font-size: 18px; font-weight: 800; }
+    .stat-label { margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 500; }
+
+    .section-label { margin: 4px 0 0; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+    .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 2px; }
+    .action { min-height: 84px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; padding: 12px; border-radius: 18px; background: var(--card-2); color: var(--text); text-align: left; transition: opacity .15s ease; }
+    .action:hover { opacity: .85; }
+    .action.lime { background: var(--lime); color: var(--lime-ink); }
+    .action.coral { background: var(--coral); color: var(--coral-ink); }
+    .action-icon { width: 20px; height: 20px; display: grid; place-items: center; font-size: 19px; line-height: 1; }
+    .action-label { max-width: 78px; font-size: 11px; font-weight: 800; line-height: 1.25; }
+
+    .heading-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 2px; }
+    .heading-row .section-label { margin: 0; }
+    .heading-row h2 { margin-top: 4px; }
+    .service-count { padding: 0; color: var(--lime); font-size: 11px; font-weight: 800; }
+    .service-list { display: grid; gap: 12px; }
+    .service-card { display: grid; grid-template-columns: 104px 1fr; min-height: 142px; }
+    .service-art { position: relative; overflow: hidden; background: linear-gradient(145deg, #b89f89, #5b7d83 55%, #21323d); }
+    .service-art::before { content: ""; position: absolute; inset: 20% -15% -5% 10%; border-radius: 48% 48% 0 0; background: rgba(239, 227, 204, .72); transform: skew(-15deg); }
+    .service-art::after { content: ""; position: absolute; left: 22%; right: 5%; bottom: 0; height: 42%; background: linear-gradient(90deg, rgba(57, 77, 65, .85) 0 14%, transparent 15% 37%, rgba(119, 92, 64, .75) 38% 64%, transparent 65%); }
+    .service-body { display: flex; flex-direction: column; justify-content: space-between; padding: 13px; }
+    .service-top { display: flex; flex-direction: column; gap: 4px; }
+    .service-title { font-size: 15px; font-weight: 800; line-height: 1.2; }
+    .service-price { color: var(--lime); font-size: 11px; font-weight: 800; }
+    .service-description { margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .inquire { align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; padding: 8px 10px; border-radius: 12px; background: var(--card-2); color: var(--text); font-size: 10px; font-weight: 800; }
+    .arrow { color: var(--lime); font-size: 16px; }
+    .lead-cta { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px; border-radius: 22px; background: var(--lime); color: var(--lime-ink); }
+    .lead-eyebrow { opacity: .65; font-size: 9px; font-weight: 900; letter-spacing: 1.2px; }
+    .lead-title { margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -.4px; }
+    .circle-arrow { width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; background: var(--lime-ink); color: var(--lime); font-size: 20px; }
+
+    .dashboard-hero { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px; }
+    .hero-number { margin-top: 8px; font-size: 48px; line-height: 1; font-weight: 800; letter-spacing: -2px; }
+    .hero-caption { margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 500; }
+    .trend-pill { background: rgba(199, 243, 107, .1); color: var(--lime); font-size: 10px; font-weight: 800; }
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .metric-card { padding: 15px; }
+    .metric-icon { width: 30px; height: 30px; display: grid; place-items: center; margin-bottom: 16px; border-radius: 10px; background: rgba(199, 243, 107, .12); color: var(--lime); }
+    .metric-card.coral .metric-icon { background: rgba(242, 141, 114, .12); color: var(--coral); }
+    .metric-label, .metric-detail { color: var(--muted); font-size: 10px; font-weight: 700; }
+    .metric-value { margin-top: 3px; font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+    .metric-detail { margin-top: 3px; color: var(--lime); }
+    .metric-card.coral .metric-detail { color: var(--coral); }
+    .chart-card { padding: 16px; }
+    .chart-total { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .chart { height: 160px; display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 16px; }
+    .bar-column { height: 100%; display: flex; flex: 1; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px; }
+    .bar-track { width: 100%; height: 112px; display: flex; align-items: flex-end; overflow: hidden; border-radius: 8px; background: var(--input); }
+    .bar { width: 100%; border-radius: 8px; background: var(--card-2); }
+    .bar.today { background: var(--lime); }
+    .bar-label { color: var(--muted); font-size: 9px; font-weight: 800; }
+    .lead-list { display: grid; gap: 10px; }
+    .lead-row { display: flex; align-items: center; gap: 10px; padding: 12px; }
+    .lead-avatar { width: 40px; height: 40px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 14px; background: var(--card-2); color: var(--text); font-size: 12px; font-weight: 800; }
+    .lead-info { min-width: 0; flex: 1; }
+    .lead-name { overflow: hidden; font-size: 13px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+    .lead-interest { margin-top: 2px; overflow: hidden; color: var(--muted); font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .lead-time { margin-top: 4px; overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .lead-actions { display: flex; gap: 7px; }
+    .lead-action { width: 31px; height: 31px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 10px; background: var(--input); color: var(--lime); font-size: 15px; }
+    .lead-action.coral { color: var(--coral); }
+
+    .avatar-mini { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 14px; background: var(--lime); color: var(--lime-ink); font-size: 17px; font-weight: 800; }
+    .save-pill { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 15px; background: var(--lime); color: var(--lime-ink); font-size: 11px; font-weight: 800; }
+    .logo-card { display: flex; align-items: center; gap: 15px; padding: 14px; }
+    .logo-wrap { position: relative; flex: 0 0 auto; }
+    .logo-preview { width: 78px; height: 78px; display: grid; place-items: center; overflow: hidden; border-radius: 22px; background: linear-gradient(150deg, #493628, #0d1b28); color: var(--text); font-size: 24px; font-weight: 800; }
+    .logo-preview svg { width: 100%; height: 100%; }
+    .camera-button { position: absolute; right: -5px; bottom: -5px; width: 30px; height: 30px; display: grid; place-items: center; border: 3px solid var(--card); border-radius: 10px; background: var(--lime); color: var(--lime-ink); }
+    .logo-copy { min-width: 0; }
+    .logo-copy h2 { font-size: 17px; }
+    .muted-copy { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .text-link { display: inline-block; margin-top: 9px; color: var(--lime); font-size: 11px; font-weight: 800; }
+    .form-section { margin: 3px 0 -4px; font-size: 16px; font-weight: 800; letter-spacing: -.3px; }
+    .form-card { padding: 14px; }
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .7px; }
+    .field input, .field textarea, .modal input {
+      width: 100%; border: 1px solid var(--line); outline: 0; border-radius: 13px;
+      background: var(--input); color: var(--text); font-size: 13px;
+    }
+    .field input, .modal input { height: 45px; padding: 0 12px; }
+    .field textarea { min-height: 70px; padding: 12px; resize: vertical; }
+    .field input:focus, .field textarea:focus, .modal input:focus { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(199, 243, 107, .1); }
+    .field input::placeholder, .field textarea::placeholder, .modal input::placeholder { color: var(--muted); }
+    .service-header { display: flex; align-items: center; justify-content: space-between; }
+    .add-button { display: inline-flex; align-items: center; gap: 5px; padding: 8px 10px; border-radius: 12px; background: var(--card-2); color: var(--text); font-size: 11px; font-weight: 800; }
+    .edit-service { padding: 14px; }
+    .edit-service + .edit-service { margin-top: 10px; }
+    .edit-service-head { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+    .edit-service-icon { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 10px; background: rgba(199, 243, 107, .12); color: var(--lime); }
+    .edit-service-title { flex: 1; font-size: 13px; font-weight: 800; }
+    .delete-button { padding: 4px; background: transparent; color: #ff6b6b; font-size: 17px; }
+
+    .bottom-nav {
+      position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: min(100%, 520px); height: calc(76px + env(safe-area-inset-bottom)); margin: 0 auto; padding: 10px 12px env(safe-area-inset-bottom);
+      border-top: 1px solid var(--line); background: rgba(18, 24, 37, .94); backdrop-filter: blur(18px);
+    }
+    .nav-button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .nav-button.active { color: var(--lime); }
+    .nav-icon { font-size: 21px; line-height: 1; }
+
+    .modal-backdrop { position: fixed; z-index: 20; inset: 0; display: none; align-items: flex-end; background: rgba(0, 0, 0, .68); }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(100%, 520px); margin: 0 auto; padding: 10px 20px calc(34px + env(safe-area-inset-bottom)); border: 1px solid var(--line); border-bottom: 0; border-radius: 28px 28px 0 0; background: var(--card); animation: sheet-in .25s ease both; }
+    @keyframes sheet-in { from { transform: translateY(30px); opacity: .4; } to { transform: translateY(0); opacity: 1; } }
+    .modal-handle { width: 42px; height: 4px; margin: 0 auto 18px; border-radius: 4px; background: #46516a; }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .modal-header h2 { margin-top: 5px; font-size: 23px; }
+    .modal-close { padding: 2px; background: transparent; color: var(--muted); font-size: 24px; line-height: 1; }
+    .modal-copy { margin: 8px 0 18px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .modal input { margin-bottom: 10px; font-size: 14px; }
+    .interest-label { margin-bottom: 7px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .7px; }
+    .interest-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .interest { padding: 9px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--input); color: var(--text); font-size: 10px; font-weight: 700; }
+    .interest.selected { border-color: var(--lime); background: var(--lime); color: var(--lime-ink); }
+    .submit-button { width: 100%; height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border-radius: 16px; background: var(--lime); color: var(--lime-ink); font-size: 14px; font-weight: 800; }
+    .toast { position: fixed; z-index: 30; right: 18px; bottom: calc(92px + env(safe-area-inset-bottom)); left: 18px; display: none; width: min(484px, calc(100% - 36px)); margin: 0 auto; padding: 13px 16px; border: 1px solid rgba(199, 243, 107, .4); border-radius: 15px; background: #1b2636; color: var(--text); font-size: 12px; font-weight: 700; box-shadow: 0 12px 32px rgba(0, 0, 0, .3); }
+    .toast.show { display: block; animation: toast-in .25s ease both; }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .empty { padding: 24px 12px; color: var(--muted); text-align: center; font-size: 12px; }
+    .hidden-input { display: none; }
+
+    @media (min-width: 700px) {
+      body { padding: 28px 0; }
+      .app { min-height: calc(100vh - 56px); border: 1px solid var(--line); border-radius: 34px; box-shadow: 0 32px 80px rgba(0, 0, 0, .35); }
+      .screen { min-height: calc(100vh - 56px); }
+      .bottom-nav { bottom: 28px; border: 1px solid var(--line); border-radius: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="profile-screen" class="screen active"></section>
+    <section id="dashboard-screen" class="screen"></section>
+    <section id="customize-screen" class="screen"></section>
+
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="nav-button active" data-screen="profile"><span class="nav-icon">○</span><span>Profile</span></button>
+      <button class="nav-button" data-screen="dashboard"><span class="nav-icon">▥</span><span>Dashboard</span></button>
+      <button class="nav-button" data-screen="customize"><span class="nav-icon">☷</span><span>Customize</span></button>
+    </nav>
+  </main>
+
+  <div id="lead-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="lead-title">
+    <form id="lead-form" class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div><div class="eyebrow">Quick intro</div><h2 id="lead-title">Let’s start a conversation</h2></div>
+        <button id="close-modal" type="button" class="modal-close" aria-label="Close">×</button>
+      </div>
+      <p class="modal-copy">Share your details and Ayaan will personally follow up.</p>
+      <input id="lead-name" required autocomplete="name" placeholder="Your name" />
+      <input id="lead-phone" required autocomplete="tel" inputmode="tel" placeholder="Phone number" />
+      <div class="interest-label">I’m interested in</div>
+      <div id="interest-row" class="interest-row"></div>
+      <button class="submit-button" type="submit">Submit inquiry <span class="arrow">→</span></button>
+    </form>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+
+  <script>
+    (() => {
+      const KEY = "instalead-tap-single-file-v1";
+      const defaultProfile = {
+        name: "Ayaan Malik",
+        title: "Real Estate Advisor · Karachi",
+        phone: "+92 300 1234567",
+        whatsapp: "923001234567",
+        reviewUrl: "https://g.page/r/CaDemoReview",
+        location: "DHA Phase 6, Karachi",
+        instagram: "@ayaanmalik.estate",
+        linkedin: "linkedin.com/in/ayaanmalik",
+        avatarData: "",
+        services: [
+          { id: "1", title: "Buy your next home", description: "Private viewings and negotiation support from shortlist to keys.", price: "From PKR 25k" },
+          { id: "2", title: "List with confidence", description: "Positioning, photography and buyer outreach for your property.", price: "Commission based" },
+          { id: "3", title: "Property consultation", description: "A focused 30-minute call to map your next move.", price: "PKR 5,000" }
+        ]
+      };
+      const defaultState = {
+        profile: defaultProfile,
+        leads: [
+          { id: "1", name: "Sara Ahmed", phone: "+92 321 4582190", interest: "Buy your next home", createdAt: "Today, 10:42 AM" },
+          { id: "2", name: "Hassan Raza", phone: "+92 333 8821001", interest: "Property consultation", createdAt: "Today, 09:18 AM" },
+          { id: "3", name: "Maham Khan", phone: "+92 300 7783145", interest: "List with confidence", createdAt: "Yesterday, 06:32 PM" }
+        ],
+        metrics: { scans: 1248, leadsToday: 7, reviewClicks: 86 }
+      };
+
+      const state = loadState();
+      let activeScreen = "profile";
+      let modalInterest = state.profile.services[0]?.title || "General inquiry";
+      let toastTimer;
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+          if (!saved) return structuredClone(defaultState);
+          return {
+            profile: { ...defaultProfile, ...saved.profile, services: saved.profile?.services || defaultProfile.services },
+            leads: Array.isArray(saved.leads) ? saved.leads : defaultState.leads,
+            metrics: { ...defaultState.metrics, ...saved.metrics }
+          };
+        } catch {
+          return structuredClone(defaultState);
+        }
+      }
+
+      function saveState() {
+        localStorage.setItem(KEY, JSON.stringify(state));
+      }
+
+      function esc(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+      }
+
+      function initials(name) {
+        return String(name).split(/\s+/).filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "AM";
+      }
+
+      function avatarMarkup(data, sizeClass) {
+        if (data) return `<img class="${sizeClass}" src="${esc(data)}" alt="Profile image" />`;
+        return `<div class="${sizeClass}" aria-label="Ayaan Malik avatar">
+          <svg viewBox="0 0 100 100" role="img" aria-hidden="true">
+            <defs><linearGradient id="shirt" x1="0" x2="1"><stop stop-color="#182f3b"/><stop offset="1" stop-color="#493728"/></linearGradient></defs>
+            <rect width="100" height="100" fill="#17202a"/>
+            <circle cx="50" cy="37" r="19" fill="#8a573d"/>
+            <path d="M31 37c2-19 36-25 42-2-8-5-14-6-23-2-5 2-11 3-19 4Z" fill="#17181b"/>
+            <path d="M15 103c3-29 18-39 35-39s33 10 36 39" fill="url(#shirt)"/>
+            <path d="M39 63c3 9 19 9 23 0" fill="#724630"/>
+            <circle cx="43" cy="39" r="2" fill="#14161a"/><circle cx="58" cy="39" r="2" fill="#14161a"/>
+            <path d="M43 49c5 4 10 4 15 0" fill="none" stroke="#472a24" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>`;
+      }
+
+      function coverMarkup() {
+        return `<div class="cover" aria-label="City skyline cover image"></div>`;
+      }
+
+      function serviceArt() {
+        return `<div class="service-art" aria-hidden="true"></div>`;
+      }
+
+      function action(label, icon, className, handler) {
+        return `<button class="action ${className || ""}" data-action="${handler}" type="button"><span class="action-icon">${icon}</span><span class="action-label">${label}</span></button>`;
+      }
+
+      function renderProfile() {
+        const p = state.profile;
+        document.querySelector("#profile-screen").innerHTML = `
+          <div class="header-row">
+            <div><div class="eyebrow">Public profile</div><h1>Tap to connect</h1></div>
+            <div class="live-pill"><span class="live-dot"></span>LIVE</div>
+          </div>
+          <article class="card profile-card">
+            ${coverMarkup()}
+            <div class="profile-identity">
+              ${avatarMarkup(p.avatarData, "avatar")}
+              <div class="identity-copy">
+                <div class="name-line"><div class="profile-name">${esc(p.name)}</div><span class="verified">✓</span></div>
+                <div class="profile-title">${esc(p.title)}</div>
+                <div class="location-text"><span class="pin">⌖</span>${esc(p.location)}</div>
+              </div>
+            </div>
+            <div class="profile-stats">
+              <div><div class="stat-value">4.9</div><div class="stat-label">Google rating</div></div><div class="stat-divider"></div>
+              <div><div class="stat-value">8 yrs</div><div class="stat-label">In the market</div></div><div class="stat-divider"></div>
+              <div><div class="stat-value">24h</div><div class="stat-label">Reply time</div></div>
+            </div>
+          </article>
+          <div class="section-label">Quick actions</div>
+          <div class="action-grid">
+            ${action("Save contact", "♙", "lime", "save-contact")}
+            ${action("WhatsApp", "◌", "", "whatsapp")}
+            ${action("Call now", "⌕", "", "call")}
+            ${action("Leave a review", "☆", "", "review")}
+            ${action("Location", "⌖", "", "location")}
+            ${action("Send inquiry", "↗", "coral", "open-lead")}
+          </div>
+          <div class="heading-row"><div><div class="section-label">What I can help with</div><h2>Services & expertise</h2></div><div class="service-count">${p.services.length} services</div></div>
+          <div class="service-list">
+            ${p.services.map((service) => `
+              <article class="card service-card">
+                ${serviceArt()}
+                <div class="service-body">
+                  <div class="service-top"><div class="service-title">${esc(service.title)}</div><div class="service-price">${esc(service.price)}</div><div class="service-description">${esc(service.description)}</div></div>
+                  <button type="button" class="inquire" data-service="${esc(service.title)}">Inquire on WhatsApp <span class="arrow">↗</span></button>
+                </div>
+              </article>`).join("")}
+          </div>
+          <button type="button" class="lead-cta" data-action="open-lead"><div><div class="lead-eyebrow">READY WHEN YOU ARE</div><div class="lead-title">Tell me what you’re looking for</div></div><span class="circle-arrow">↗</span></button>
+        `;
+        bindProfileEvents();
+      }
+
+      function bindProfileEvents() {
+        document.querySelectorAll("[data-action]").forEach((button) => button.addEventListener("click", () => runAction(button.dataset.action)));
+        document.querySelectorAll("[data-service]").forEach((button) => button.addEventListener("click", () => {
+          modalInterest = button.dataset.service;
+          openLeadModal();
+        }));
+      }
+
+      function renderDashboard() {
+        const m = state.metrics;
+        const p = state.profile;
+        const bars = [34, 51, 44, 68, 54, 82, 94];
+        document.querySelector("#dashboard-screen").innerHTML = `
+          <div class="header-row">
+            <div><div class="eyebrow">Owner view</div><h1>Your workspace</h1></div>
+            <div class="avatar-mini">${esc(initials(p.name).slice(0, 1))}</div>
+          </div>
+          <article class="card dashboard-hero">
+            <div><div class="eyebrow">Profile performance</div><div class="hero-number">${m.scans.toLocaleString()}</div><div class="hero-caption">total taps & scans</div></div>
+            <div class="trend-pill">↗ +18.4%</div>
+          </article>
+          <div class="metric-grid">
+            <article class="card metric-card"><div class="metric-icon">♙</div><div class="metric-label">Leads today</div><div class="metric-value">${m.leadsToday}</div><div class="metric-detail">vs 4 yesterday</div></article>
+            <article class="card metric-card coral"><div class="metric-icon">☆</div><div class="metric-label">Review clicks</div><div class="metric-value">${m.reviewClicks}</div><div class="metric-detail">this month</div></article>
+          </div>
+          <article class="card chart-card">
+            <div class="heading-row"><div><div class="section-label">Last 7 days</div><h2>Tap activity</h2></div><div class="chart-total">286 total</div></div>
+            <div class="chart">${bars.map((height, index) => `<div class="bar-column"><div class="bar-track"><div class="bar ${index === 6 ? "today" : ""}" style="height:${height}%"></div></div><div class="bar-label">${["M", "T", "W", "T", "F", "S", "S"][index]}</div></div>`).join("")}</div>
+          </article>
+          <div class="heading-row"><div><div class="section-label">Inbox</div><h2>Recent leads</h2></div><div class="service-count">${state.leads.length} total</div></div>
+          <div class="lead-list">${state.leads.length ? state.leads.map(leadMarkup).join("") : `<div class="card empty">No leads yet. Your next inquiry will appear here.</div>`}</div>
+        `;
+        document.querySelectorAll("[data-lead-call]").forEach((button) => button.addEventListener("click", () => openUrl("tel:" + button.dataset.leadCall)));
+        document.querySelectorAll("[data-lead-whatsapp]").forEach((button) => button.addEventListener("click", () => openUrl("https://wa.me/" + button.dataset.leadWhatsapp)));
+      }
+
+      function leadMarkup(lead) {
+        return `<article class="card lead-row"><div class="lead-avatar">${esc(initials(lead.name))}</div><div class="lead-info"><div class="lead-name">${esc(lead.name)}</div><div class="lead-interest">${esc(lead.interest)}</div><div class="lead-time">${esc(lead.createdAt)} · ${esc(lead.phone)}</div></div><div class="lead-actions"><button class="lead-action" type="button" data-lead-call="${esc(lead.phone)}" aria-label="Call ${esc(lead.name)}">⌕</button><button class="lead-action coral" type="button" data-lead-whatsapp="${esc(lead.phone.replace(/\D/g, ""))}" aria-label="WhatsApp ${esc(lead.name)}">◌</button></div></article>`;
+      }
+
+      function renderCustomize() {
+        const p = state.profile;
+        document.querySelector("#customize-screen").innerHTML = `
+          <div class="header-row">
+            <div><div class="eyebrow">Owner view</div><h1>Customize profile</h1></div>
+            <button id="save-profile" class="save-pill" type="button">✓ <span>Save</span></button>
+          </div>
+          <article class="card logo-card">
+            <div class="logo-wrap"><div id="logo-preview" class="logo-preview">${p.avatarData ? `<img class="logo-preview" src="${esc(p.avatarData)}" alt="Profile image" />` : avatarMarkup("", "logo-preview")}</div><button id="change-logo" class="camera-button" type="button" aria-label="Change image">⌁</button><input id="logo-input" class="hidden-input" type="file" accept="image/*" /></div>
+            <div class="logo-copy"><h2>Profile photo</h2><p class="muted-copy">Use a clear logo or portrait. It appears on your public card.</p><button id="change-logo-text" type="button" class="text-link" style="background:transparent;padding:0">Change image</button></div>
+          </article>
+          <div class="form-section">Identity</div>
+          <article class="card form-card">
+            ${field("display-name", "Display name", p.name)}
+            ${field("business-title", "Business title", p.title)}
+            ${field("location", "Location", p.location)}
+          </article>
+          <div class="form-section">Contact & social</div>
+          <article class="card form-card">
+            ${field("phone", "Phone", p.phone, "tel")}
+            ${field("whatsapp", "WhatsApp number", p.whatsapp, "tel")}
+            ${field("instagram", "Instagram", p.instagram)}
+            ${field("linkedin", "LinkedIn", p.linkedin)}
+            ${field("review-url", "Google Review link", p.reviewUrl, "url")}
+          </article>
+          <div class="service-header"><div class="form-section">Services</div><button id="add-service" class="add-button" type="button">＋ Add</button></div>
+          <div id="edit-services">${p.services.map(editServiceMarkup).join("")}</div>
+        `;
+        bindCustomizeEvents();
+      }
+
+      function field(id, label, value, type = "text") {
+        return `<div class="field"><label for="${id}">${label}</label><input id="${id}" type="${type}" value="${esc(value)}" /></div>`;
+      }
+
+      function editServiceMarkup(service) {
+        return `<article class="card edit-service" data-edit-service="${esc(service.id)}"><div class="edit-service-head"><div class="edit-service-icon">▦</div><div class="edit-service-title">Service details</div><button type="button" class="delete-button" data-delete-service="${esc(service.id)}" aria-label="Delete service">⌫</button></div>${field("service-title-" + service.id, "Name", service.title)}${field("service-price-" + service.id, "Price", service.price)}<div class="field"><label for="service-description-${service.id}">Description</label><textarea id="service-description-${service.id}">${esc(service.description)}</textarea></div></article>`;
+      }
+
+      function bindCustomizeEvents() {
+        document.querySelector("#save-profile").addEventListener("click", saveProfile);
+        document.querySelector("#add-service").addEventListener("click", () => {
+          state.profile.services.push({ id: Date.now().toString(), title: "New service", description: "Add a short description for this offer.", price: "Contact for price" });
+          saveProfile();
+          showToast("New service added");
+        });
+        document.querySelectorAll("[data-delete-service]").forEach((button) => button.addEventListener("click", () => {
+          state.profile.services = state.profile.services.filter((service) => service.id !== button.dataset.deleteService);
+          saveProfile();
+          showToast("Service removed");
+        }));
+        const input = document.querySelector("#logo-input");
+        const openPicker = () => input.click();
+        document.querySelector("#change-logo").addEventListener("click", openPicker);
+        document.querySelector("#change-logo-text").addEventListener("click", openPicker);
+        input.addEventListener("change", () => {
+          const file = input.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => { state.profile.avatarData = String(reader.result || ""); saveProfile(); renderCustomize(); showToast("Profile image updated"); };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function readCustomizeFields() {
+        const p = state.profile;
+        p.name = document.querySelector("#display-name")?.value.trim() || p.name;
+        p.title = document.querySelector("#business-title")?.value.trim() || p.title;
+        p.location = document.querySelector("#location")?.value.trim() || p.location;
+        p.phone = document.querySelector("#phone")?.value.trim() || p.phone;
+        p.whatsapp = document.querySelector("#whatsapp")?.value.trim() || p.whatsapp;
+        p.instagram = document.querySelector("#instagram")?.value.trim() || p.instagram;
+        p.linkedin = document.querySelector("#linkedin")?.value.trim() || p.linkedin;
+        p.reviewUrl = document.querySelector("#review-url")?.value.trim() || p.reviewUrl;
+        p.services = p.services.map((service) => ({
+          ...service,
+          title: document.querySelector("#service-title-" + service.id)?.value.trim() || service.title,
+          price: document.querySelector("#service-price-" + service.id)?.value.trim() || service.price,
+          description: document.querySelector("#service-description-" + service.id)?.value.trim() || service.description
+        }));
+      }
+
+      function saveProfile() {
+        readCustomizeFields();
+        saveState();
+        renderProfile();
+        renderDashboard();
+        renderCustomize();
+        showToast("Profile saved");
+      }
+
+      function setScreen(screen) {
+        activeScreen = screen;
+        document.querySelectorAll(".screen").forEach((element) => element.classList.toggle("active", element.id === screen + "-screen"));
+        document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("active", button.dataset.screen === screen));
+        if (screen === "profile") renderProfile();
+        if (screen === "dashboard") renderDashboard();
+        if (screen === "customize") renderCustomize();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function openUrl(url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+
+      function runAction(actionName) {
+        const p = state.profile;
+        if (actionName === "save-contact") {
+          const vcard = ["BEGIN:VCARD", "VERSION:3.0", "FN:" + p.name, "ORG:" + p.title, "TEL:" + p.phone, "END:VCARD"].join("\n");
+          const blob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url; link.download = p.name.toLowerCase().replace(/\s+/g, "-") + ".vcf"; link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 500);
+          showToast("Contact card download started");
+        }
+        if (actionName === "whatsapp") openUrl("https://wa.me/" + p.whatsapp.replace(/\D/g, ""));
+        if (actionName === "call") window.location.href = "tel:" + p.phone;
+        if (actionName === "review") { state.metrics.reviewClicks += 1; saveState(); openUrl(p.reviewUrl); }
+        if (actionName === "location") openUrl("https://maps.google.com/?q=" + encodeURIComponent(p.location));
+        if (actionName === "open-lead") openLeadModal();
+      }
+
+      function openLeadModal() {
+        modalInterest = modalInterest || state.profile.services[0]?.title || "General inquiry";
+        const row = document.querySelector("#interest-row");
+        row.innerHTML = state.profile.services.map((service) => `<button type="button" class="interest ${service.title === modalInterest ? "selected" : ""}" data-interest="${esc(service.title)}">${esc(service.title)}</button>`).join("");
+        row.querySelectorAll("[data-interest]").forEach((button) => button.addEventListener("click", () => {
+          modalInterest = button.dataset.interest;
+          row.querySelectorAll(".interest").forEach((item) => item.classList.toggle("selected", item === button));
+        }));
+        document.querySelector("#lead-modal").classList.add("open");
+        document.querySelector("#lead-name").focus();
+      }
+
+      function closeLeadModal() {
+        document.querySelector("#lead-modal").classList.remove("open");
+        document.querySelector("#lead-form").reset();
+      }
+
+      function submitLead(event) {
+        event.preventDefault();
+        const name = document.querySelector("#lead-name").value.trim();
+        const phone = document.querySelector("#lead-phone").value.trim();
+        if (!name || !phone) return;
+        state.leads.unshift({ id: Date.now().toString(), name, phone, interest: modalInterest, createdAt: "Just now" });
+        state.metrics.leadsToday += 1;
+        saveState();
+        closeLeadModal();
+        renderDashboard();
+        showToast("Thanks, " + name + ". Ayaan will be in touch shortly.");
+      }
+
+      function showToast(message) {
+        const toast = document.querySelector("#toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+      }
+
+      document.querySelectorAll(".nav-button").forEach((button) => button.addEventListener("click", () => setScreen(button.dataset.screen)));
+      document.querySelector("#close-modal").addEventListener("click", closeLeadModal);
+      document.querySelector("#lead-modal").addEventListener("click", (event) => { if (event.target.id === "lead-modal") closeLeadModal(); });
+      document.querySelector("#lead-form").addEventListener("submit", submitLead);
+      renderProfile();
+      renderDashboard();
+      renderCustomize();
+    })();
+  </script>
+</body>
+</html>
